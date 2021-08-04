@@ -28,19 +28,51 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 const mainpage = require('./routes/mainpage/index');
+const sqlconnect=require('./routes/mainpage/mainpage.controller');
 
 app.use('/mainpage', mainpage);
+//const chatname = ChattingRoomModel.chatname
 
 
 // 소켓 연결 코드
 io.sockets.on('connection', (socket) => {
+
     console.log(`Socket connected : ${socket.id}`)
+
+    socket.on('create', (data) => {
+      const StudyRoomModel = JSON.parse(data);
+      const roomTitle= StudyRoomModel.roomTitle;
   
+      socket.join(`${roomTitle}`)
+      console.log(`create `+roomTitle)
+
+
+      //방 생성
+      sqlconnect.createRoom(roomTitle)
+
+    })
+
+    //방 삭제
+    socket.on('delete', (data) => {
+      const session = require('express-session');
+      // const rid= session.rId;
+      const rId=sqlconnect.roomid
+      console.log(`delete `+ rId)
+
+      
+      sqlconnect.deleteRoom(rId)
+    
+    })
+
+
+
     //입장시
     socket.on('enter', (data) => {
       const ChattingRoomModel = JSON.parse(data)
       const chatname = ChattingRoomModel.chatname
       const roomnumber = ChattingRoomModel.roomnumber
+    
+   
   
       //소켓 연결될 때 방 번호 받아옴
       //이름, 방 번호 로그로 출력
@@ -50,7 +82,7 @@ io.sockets.on('connection', (socket) => {
       //입장했다고 알림
       const enterData = {
         type : "ENTER",
-        content : `${chatname} entered the room`  
+        content : `${chatname} 님이 입장했습니다`  
       }
       socket.broadcast.to(`${roomnumber}`).emit('update', JSON.stringify(enterData))
     })
@@ -66,7 +98,7 @@ io.sockets.on('connection', (socket) => {
   
       const leftData = {
         type : "LEFT",
-        content : `${chatname} left the room`  
+        content : `${chatname} 님이 퇴장했습니다`  
       }
       socket.broadcast.to(`${roomnumber}`).emit('update', JSON.stringify(leftData))
     })
@@ -83,8 +115,7 @@ io.sockets.on('connection', (socket) => {
       console.log('Socket disconnected : ${socket.id}')
     })
   })
-  
 
-app.listen(port, () => console.log(`Listening on port ${port}`)); // 서버 가동
+
+server.listen(port, () => console.log(`Listening on port ${port}`)); // 서버 가동
 module.exports = app;
-
