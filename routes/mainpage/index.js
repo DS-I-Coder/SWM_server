@@ -5,4 +5,5 @@ const controller = require('./mainpage.controller')
 router.get('/search', controller.search); // mainpage/search
 router.get('/category', controller.category); // mainpage/category
 
+
 module.exports = router; // 모듈 내보냄. controller에서 exports로 쓸 수 있음
